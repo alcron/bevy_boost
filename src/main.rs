@@ -6,8 +6,7 @@ fn main() {
     let mut app = App::new();
 
     app.add_plugins(DefaultPlugins)
-        .insert_resource(Counter::default())
-        .add_systems(Startup, on_startup)
+        .add_systems(Startup, setup)
         .add_systems(Update, on_update);
 
     if IN_DEVELOPMENT {
@@ -17,17 +16,40 @@ fn main() {
     app.run();
 }
 
-#[derive(Resource, Default)]
-struct Counter(i32);
+#[derive(Component)]
+struct Player;
 
-fn on_startup(counter: Res<Counter>) {
-    println!("The counter is: {}", counter.0);
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+        MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        Player,
+    ));
+
+    commands.spawn((
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 1.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
 }
 
-fn on_update(keys: Res<ButtonInput<KeyCode>>, mut counter: ResMut<Counter>) {
-    if keys.just_pressed(KeyCode::Space) {
-        counter.0 += 10;
-        println!("Counter updated: {}", counter.0);
+fn on_update(
+    mut player: Single<&mut Transform, With<Player>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+) {
+    if keys.pressed(KeyCode::Space) {
+        player.translation.y -= time.delta_secs();
+    }
+
+    if keys.pressed(KeyCode::KeyQ) {
+        player.rotate_z(time.delta_secs());
+    } else if keys.pressed(KeyCode::KeyE) {
+        player.rotate_z(-time.delta_secs());
     }
 }
 
