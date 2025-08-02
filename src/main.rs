@@ -1,16 +1,29 @@
+mod assets_loader;
+
+use assets_loader::AssetLoaderPlugin;
 use bevy::prelude::*;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+
+use crate::assets_loader::SceneAssets;
 
 const IN_DEVELOPMENT: bool = true;
 
 fn main() {
     let mut app = App::new();
 
-    app.add_plugins(DefaultPlugins)
+    app.insert_resource(ClearColor(Color::srgb(0.133, 0.12, 0.12)))
+        .insert_resource(AmbientLight {
+            brightness: 400.0,
+            ..default()
+        })
+        .add_plugins((DefaultPlugins, AssetLoaderPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, on_update);
 
     if IN_DEVELOPMENT {
         app.add_systems(Update, exit_on_esc);
+
+        app.add_plugins((EguiPlugin::default(), WorldInspectorPlugin::default()));
     }
 
     app.run();
@@ -19,21 +32,23 @@ fn main() {
 #[derive(Component)]
 struct Player;
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
+fn setup(mut commands: Commands, scene_assets: Res<SceneAssets>) {
+    commands.spawn(SceneRoot(scene_assets.floor.clone()));
+    commands.spawn(SceneRoot(scene_assets.landing_pad.clone()));
+    commands.spawn(SceneRoot(scene_assets.launch_pad.clone()));
     commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-        Transform::from_xyz(0.0, 0.0, 0.0),
+        SceneRoot(scene_assets.rocket.clone()),
+        Transform::from_xyz(-7.5, 1.5, 0.0),
         Player,
     ));
 
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 1.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Projection::Perspective(PerspectiveProjection {
+            fov: 65.0f32.to_radians(),
+            ..default()
+        }),
+        Transform::from_xyz(0.0, 4.5, 9.0).looking_at(Vec3::new(0.0, 2.0, 0.0), Vec3::Y),
     ));
 }
 
@@ -47,9 +62,9 @@ fn on_update(
     }
 
     if keys.pressed(KeyCode::KeyQ) {
-        player.rotate_z(time.delta_secs());
+        player.rotate_local_z(time.delta_secs());
     } else if keys.pressed(KeyCode::KeyE) {
-        player.rotate_z(-time.delta_secs());
+        player.rotate_local_z(-time.delta_secs());
     }
 }
 
