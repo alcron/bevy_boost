@@ -13,15 +13,30 @@ pub struct AssetLoaderPlugin;
 impl Plugin for AssetLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SceneAssets>()
-            .add_systems(Startup, load_assets);
+            .add_systems(PreStartup, load_assets);
     }
 }
 
-fn load_assets(mut scene_assets: ResMut<SceneAssets>, asset_server: Res<AssetServer>) {
+fn load_assets(
+    mut scene_assets: ResMut<SceneAssets>,
+    asset_server: Res<AssetServer>,
+) {
+    // TODO: Make proper assets handling and load using one gltf file (check https://bevy.org/examples/assets/multi-asset-sync/ for example)
+
     *scene_assets = SceneAssets {
-        floor: asset_server.load(GltfAssetLabel::Scene(0).from_asset("floor.glb")),
-        landing_pad: asset_server.load(GltfAssetLabel::Scene(0).from_asset("landing_pad.glb")),
-        launch_pad: asset_server.load(GltfAssetLabel::Scene(0).from_asset("launch_pad.glb")),
-        rocket: asset_server.load(GltfAssetLabel::Scene(0).from_asset("rocket.glb")),
+        floor: asset_server.load(
+            GltfAssetLabel::Scene(0).from_asset("floor.glb"),
+        ),
+        landing_pad: asset_server.load(
+            GltfAssetLabel::Scene(0)
+                .from_asset("landing_pad.glb"),
+        ),
+        launch_pad: asset_server.load(
+            GltfAssetLabel::Scene(0)
+                .from_asset("launch_pad.glb"),
+        ),
+        rocket: asset_server.load(
+            GltfAssetLabel::Scene(0).from_asset("rocket.glb"),
+        ),
     };
 }
