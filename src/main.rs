@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::{
     bevy_egui::EguiPlugin, quick::WorldInspectorPlugin,
 };
+use leafwing_input_manager::prelude::*;
 
 use crate::assets_loader::SceneAssets;
 
@@ -25,6 +26,7 @@ fn main() {
         DefaultPlugins,
         AssetLoaderPlugin,
         PhysicsPlugins::default(),
+        InputManagerPlugin::<Action>::default(),
     ))
     .add_systems(Startup, setup)
     .add_systems(Update, on_update);
@@ -43,6 +45,15 @@ fn main() {
 
 #[derive(Component)]
 struct Player;
+
+#[derive(
+    Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect,
+)]
+enum Action {
+    Boost,
+    RotateLeft,
+    RotateRight,
+}
 
 fn setup(
     mut commands: Commands,
@@ -69,16 +80,27 @@ fn setup(
             ColliderConstructor::ConvexDecompositionFromMesh,
         ),
     ));
+
     commands.spawn((
         SceneRoot(scene_assets.rocket.clone()),
         // Transform::from_xyz(-7.5, 1.5, 0.0),
         Transform::from_xyz(-7.5, 2.5, 0.0),
+        // TODO: Split to separate plugins
+        // Physics components --------------------
         RigidBody::Dynamic,
-        Mass(5.0),
         ColliderConstructorHierarchy::new(
             ColliderConstructor::ConvexDecompositionFromMesh,
         ),
         LockedAxes::new().lock_translation_z(),
+        // ---------------------------------------
+        InputMap::new([
+            (Action::Boost, KeyCode::Space),
+            (Action::Boost, KeyCode::KeyW),
+            (Action::RotateLeft, KeyCode::KeyA),
+            (Action::RotateLeft, KeyCode::ArrowLeft),
+            (Action::RotateRight, KeyCode::KeyD),
+            (Action::RotateRight, KeyCode::ArrowRight),
+        ]),
         Player,
     ));
 
@@ -95,21 +117,39 @@ fn setup(
 
 fn on_update(
     mut player: Single<
-        (&mut LinearVelocity, &mut AngularVelocity),
+        (
+            &mut Transform,
+            &mut LinearVelocity,
+            &mut AngularVelocity,
+            &ActionState<Action>,
+        ),
         With<Player>,
     >,
-    keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let (linear_velocity, angular_velocity) = &mut *player;
+    let (
+        transform,
+        linear_velocity,
+        angular_velocity,
+        action_state,
+    ) = &mut *player;
 
-    if keys.pressed(KeyCode::Space) {
-        linear_velocity.y += time.delta_secs() * 20.0;
+    println!(
+        "rot: {:?} : {:?}",
+        transform.rotation.x, transform.rotation.y
+    );
+
+    if action_state.pressed(&Action::Boost) {
+        let top = transform.rotation * Vec3::Y;
+        let multiplier = time.delta_secs() * 20.0;
+
+        linear_velocity.x += top.x * multiplier;
+        linear_velocity.y += top.y * multiplier;
     }
 
-    if keys.pressed(KeyCode::KeyQ) {
+    if action_state.pressed(&Action::RotateLeft) {
         angular_velocity.z += time.delta_secs() * 5.0;
-    } else if keys.pressed(KeyCode::KeyE) {
+    } else if action_state.pressed(&Action::RotateRight) {
         angular_velocity.z -= time.delta_secs() * 5.0;
     }
 }
