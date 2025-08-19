@@ -1,4 +1,5 @@
 mod assets_loader;
+mod collision;
 mod level;
 mod player;
 
@@ -6,18 +7,24 @@ use bevy::prelude::*;
 use bevy_inspector_egui::{
     bevy_egui::EguiPlugin, quick::WorldInspectorPlugin,
 };
+use iyes_perf_ui::prelude::*;
 
-use crate::{level::LevelPlugin, player::PlayerPlugin};
+use crate::{
+    collision::CollisionPlugin, level::LevelPlugin,
+    player::PlayerPlugin,
+};
 use assets_loader::AssetLoaderPlugin;
 
-const IN_DEVELOPMENT: bool = true;
+pub const IN_DEVELOPMENT: bool = true;
+pub const IS_PERFOMANCE_PANEL_ENABLED: bool = false;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
     #[default]
     Setup,
     InGame,
-    GameOver,
+    Failed,
+    Succeed,
 }
 
 fn main() {
@@ -34,6 +41,7 @@ fn main() {
         })
         .add_plugins((
             AssetLoaderPlugin,
+            CollisionPlugin,
             LevelPlugin,
             PlayerPlugin,
         ))
@@ -44,7 +52,10 @@ fn main() {
         )
         .add_systems(
             Update,
-            on_restart.run_if(in_state(AppState::GameOver)),
+            on_results.run_if(
+                in_state(AppState::Failed)
+                    .or(in_state(AppState::Succeed)),
+            ),
         );
 
     if IN_DEVELOPMENT {
@@ -54,6 +65,15 @@ fn main() {
             EguiPlugin::default(),
             WorldInspectorPlugin::default(),
         ));
+
+        if IS_PERFOMANCE_PANEL_ENABLED {
+            app
+                .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
+                .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
+                .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+                .add_plugins(bevy::render::diagnostic::RenderDiagnosticsPlugin)
+                .add_plugins(PerfUiPlugin);
+        }
     }
 
     app.run();
@@ -74,14 +94,26 @@ fn setup(mut commands: Commands) {
         Transform::from_xyz(0.0, 4.5, 9.0)
             .looking_at(Vec3::new(0.0, 2.0, 0.0), Vec3::Y),
     ));
+
+    if IN_DEVELOPMENT {
+        commands.spawn(PerfUiAllEntries::default());
+    }
 }
 
-fn on_restart(
+fn on_results(
+    state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
     keys: Res<ButtonInput<KeyCode>>,
+    mut ew_change: EventWriter<level::ChangeEvent>,
 ) {
-    if keys.just_pressed(KeyCode::KeyR) {
-        next_state.set(AppState::InGame);
+    if keys.just_pressed(KeyCode::Space) {
+        if state.get() == &AppState::Failed {
+            ew_change.write(level::ChangeEvent::Reload);
+            next_state.set(AppState::InGame);
+        } else if state.get() == &AppState::Succeed {
+            ew_change.write(level::ChangeEvent::Next);
+            next_state.set(AppState::InGame);
+        }
     }
 }
 

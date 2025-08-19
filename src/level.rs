@@ -1,101 +1,134 @@
-use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::{
-    AppState, assets_loader::SceneAssets, player::Player,
+    assets_loader::{GameAsset, SceneAssets},
+    collision::{ColliderType, create_collider},
 };
 
 pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            PhysicsPlugins::default(),
-            PhysicsDebugPlugin::default(),
-        ))
-        .add_systems(OnEnter(AppState::InGame), setup)
-        .add_systems(OnExit(AppState::GameOver), despawn);
+        app.add_event::<ChangeEvent>()
+            .add_systems(Startup, setup)
+            .add_systems(Update, on_change);
     }
 }
 
-#[derive(Component)]
-struct Level;
-
-fn setup(
-    mut commands: Commands,
-    scene_assets: Res<SceneAssets>,
-) {
-    commands
-        .spawn((
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            Visibility::default(),
-            Level,
-        ))
-        .with_children(|level| {
-            level
-                .spawn((
-                    SceneRoot(scene_assets.floor.clone()),
-                    RigidBody::Static,
-                    Restitution::new(0.1),
-                    Mesh3d(scene_assets.floor_mesh.clone()),
-                    CollisionEventsEnabled,
-                    ColliderConstructor::TrimeshFromMesh,
-                ))
-                .observe(
-                    |trigger: Trigger<OnCollisionStart>,
-                     player_query: Query<&Player>,
-                     mut next_state: ResMut<
-                        NextState<AppState>,
-                    >| {
-                        if player_query
-                            .contains(trigger.collider)
-                        {
-                            next_state.set(AppState::GameOver);
-                        }
-                    },
-                );
-
-            level
-                .spawn((
-                    SceneRoot(scene_assets.landing_pad.clone()),
-                    RigidBody::Static,
-                    Restitution::new(0.1),
-                    Mesh3d(
-                        scene_assets.landing_pad_mesh.clone(),
-                    ),
-                    ColliderConstructor::ConvexHullFromMesh,
-                    CollisionEventsEnabled,
-                ))
-                .observe(
-                    |trigger: Trigger<OnCollisionStart>,
-                     player_query: Query<&Player>,
-                     mut next_state: ResMut<
-                        NextState<AppState>,
-                    >| {
-                        if player_query
-                            .contains(trigger.collider)
-                        {
-                            next_state.set(AppState::GameOver);
-                        }
-                    },
-                );
-
-            level.spawn((
-                SceneRoot(scene_assets.launch_pad.clone()),
-                RigidBody::Static,
-                Restitution::new(0.1),
-                Mesh3d(scene_assets.launch_pad_mesh.clone()),
-                ColliderConstructor::ConvexHullFromMesh,
-            ));
-        });
+fn setup(mut ew_change: EventWriter<ChangeEvent>) {
+    ew_change.write(ChangeEvent::Set(Level::First));
 }
 
-fn despawn(
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Level {
+    First,
+    Second,
+    Third,
+}
+
+const LEVELS_ORDER: [Level; 3] =
+    [Level::First, Level::Second, Level::Third];
+
+#[derive(Component)]
+struct LevelMarker;
+
+#[derive(Component)]
+pub struct Obstacle;
+
+#[derive(Component)]
+pub struct Finish;
+
+#[derive(Event, Debug)]
+pub enum ChangeEvent {
+    Next,
+    Set(Level),
+    Reload,
+}
+
+fn create_static_asset(game_asset: GameAsset) -> impl Bundle {
+    let collider = game_asset.collider.clone().unwrap();
+
+    (
+        SceneRoot(game_asset.model.clone()),
+        create_collider(ColliderType::Static, collider),
+    )
+}
+
+fn on_change(
     mut commands: Commands,
-    keys: Res<ButtonInput<KeyCode>>,
-    level: Single<Entity, With<Level>>,
+    mut er_change: EventReader<ChangeEvent>,
+    mut current_level_index: Local<usize>,
+    scene_assets: Res<SceneAssets>,
+    level_query: Query<Entity, With<LevelMarker>>,
 ) {
-    if keys.pressed(KeyCode::KeyQ) {
-        commands.entity(level.entity()).despawn();
+    for ev in er_change.read() {
+        for entity in level_query.iter() {
+            commands.entity(entity).despawn();
+        }
+        let level_to_load_index = match ev {
+            ChangeEvent::Next => {
+                (*current_level_index + 1) % LEVELS_ORDER.len()
+            }
+            ChangeEvent::Set(level) => LEVELS_ORDER
+                .iter()
+                .position(|l| l == level)
+                .unwrap_or(0),
+            ChangeEvent::Reload => *current_level_index,
+        };
+
+        *current_level_index = level_to_load_index;
+
+        commands
+            .spawn((
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                Visibility::default(),
+                LevelMarker,
+            ))
+            .with_children(|level| {
+                level.spawn((
+                    create_static_asset(
+                        scene_assets.floor.clone(),
+                    ),
+                    Name::new("Floor"),
+                    Obstacle,
+                ));
+
+                level.spawn((
+                    create_static_asset(
+                        scene_assets.landing_pad.clone(),
+                    ),
+                    Name::new("LandingPad"),
+                    Finish,
+                ));
+
+                level.spawn((
+                    create_static_asset(
+                        scene_assets.launch_pad.clone(),
+                    ),
+                    Name::new("LaunchPad"),
+                ));
+
+                match LEVELS_ORDER[level_to_load_index] {
+                    Level::Second => {
+                        level.spawn((
+                            create_static_asset(
+                                scene_assets.obstacle_2.clone(),
+                            ),
+                            Name::new("2_Obstacle"),
+                            Obstacle,
+                        ));
+                    }
+                    Level::Third => {
+                        level.spawn((
+                            create_static_asset(
+                                scene_assets.obstacle_3.clone(),
+                            ),
+                            Name::new("3_Obstacle"),
+                            Obstacle,
+                        ));
+                    }
+                    _ => {}
+                }
+            });
     }
 }
