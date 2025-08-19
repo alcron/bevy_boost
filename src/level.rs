@@ -1,15 +1,21 @@
+mod tween_move;
+
 use bevy::prelude::*;
 
 use crate::{
     assets_loader::{GameAsset, SceneAssets},
-    collision::{ColliderType, create_collider},
+    collision::{RigidBody, create_collider},
+    level::tween_move::TweenMove,
 };
+
+use tween_move::TweenMovePlugin;
 
 pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ChangeEvent>()
+            .add_plugins(TweenMovePlugin)
             .add_systems(Startup, setup)
             .add_systems(Update, on_change);
     }
@@ -24,10 +30,11 @@ pub enum Level {
     First,
     Second,
     Third,
+    Fourth,
 }
 
-const LEVELS_ORDER: [Level; 3] =
-    [Level::First, Level::Second, Level::Third];
+const LEVELS_ORDER: [Level; 4] =
+    [Level::First, Level::Second, Level::Third, Level::Fourth];
 
 #[derive(Component)]
 struct LevelMarker;
@@ -50,7 +57,7 @@ fn create_static_asset(game_asset: GameAsset) -> impl Bundle {
 
     (
         SceneRoot(game_asset.model.clone()),
-        create_collider(ColliderType::Static, collider),
+        create_collider(RigidBody::Static, collider),
     )
 }
 
@@ -125,6 +132,31 @@ fn on_change(
                             ),
                             Name::new("3_Obstacle"),
                             Obstacle,
+                        ));
+                    }
+                    Level::Fourth => {
+                        level.spawn((
+                            // TODO: Make own asset
+                            SceneRoot(
+                                scene_assets
+                                    .obstacle_2
+                                    .model
+                                    .clone(),
+                            ),
+                            create_collider(
+                                RigidBody::Static,
+                                scene_assets
+                                    .obstacle_2
+                                    .collider
+                                    .clone()
+                                    .unwrap(),
+                            ),
+                            Name::new("4_Obstacle"),
+                            Obstacle,
+                            TweenMove {
+                                target: Vec3::new(0.0, 2.5, 0.0),
+                                duration: 2,
+                            },
                         ));
                     }
                     _ => {}

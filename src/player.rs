@@ -5,8 +5,8 @@ use crate::{
     AppState,
     assets_loader::SceneAssets,
     collision::{
-        AngularVelocity, ColliderType, CollisionEvent,
-        LinearVelocity, create_collider,
+        AngularVelocity, CollisionEvent, LinearVelocity,
+        RigidBody, create_collider,
     },
     level::{Finish, Obstacle},
 };
@@ -140,7 +140,7 @@ fn setup(
     commands.spawn((
         SceneRoot(scene_assets.rocket.model.clone()),
         Transform::from_xyz(-7.5, 2.5, 0.0),
-        create_collider(ColliderType::Dynamic, collider),
+        create_collider(RigidBody::Dynamic, collider),
         InputMap::new([
             (Action::Boost, KeyCode::Space),
             (Action::Boost, KeyCode::KeyW),

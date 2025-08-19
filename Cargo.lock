@@ -1383,6 +1383,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_time_runner"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2585511ce9da102753cfb33eef39a1749a02dc5670e05d01004001e22cba326f"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_reflect",
+ "bevy_time",
+ "rustc_version",
+]
+
+[[package]]
 name = "bevy_transform"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1407,6 +1420,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72c7c6c4e6a3d5415b3a29a17bd20c17cd0e2f068b96b24e263316d58d5346ea"
 dependencies = [
  "bevy",
+]
+
+[[package]]
+name = "bevy_tween"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c061088925d74d836659cdd76e616bf4b887b120b90e2d7f440e5cee5d5d7c3c"
+dependencies = [
+ "bevy",
+ "bevy_math",
+ "bevy_time_runner",
+ "rustc_version",
+ "tracing",
 ]
 
 [[package]]
@@ -1643,6 +1669,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_egui",
+ "bevy_tween",
  "iyes_perf_ui",
  "leafwing-input-manager",
 ]
@@ -4587,6 +4614,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
+name = "rustc_version"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92"
+dependencies = [
+ "semver",
+]
+
+[[package]]
 name = "rustix"
 version = "0.38.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4698,6 +4734,12 @@ name = "self_cell"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f7d95a54511e0c7be3f51e8867aa8cf35148d7b9445d44de2f943e2b206e749"
+
+[[package]]
+name = "semver"
+version = "1.0.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56e6fa9c48d24d85fb3de5ad847117517440f6beceb7798af16b4a87d616b8d0"
 
 [[package]]
 name = "send_wrapper"

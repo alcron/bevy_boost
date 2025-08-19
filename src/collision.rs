@@ -1,7 +1,9 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-pub use avian3d::prelude::{AngularVelocity, LinearVelocity};
+pub use avian3d::prelude::{
+    AngularVelocity, LinearVelocity, RigidBody,
+};
 
 use crate::IN_DEVELOPMENT;
 
@@ -21,39 +23,21 @@ impl Plugin for CollisionPlugin {
     }
 }
 
-pub enum ColliderType {
-    Static,
-    Dynamic,
-}
-
 pub fn create_collider(
-    collider_type: ColliderType,
+    collider_type: RigidBody,
     collider: Handle<Mesh>,
 ) -> impl Bundle {
-    match collider_type {
-        ColliderType::Static => (
-            RigidBody::Static,
-            Mesh3d(collider.clone()),
-            Mass::default(),
-            ColliderDensity(2.5),
-            Restitution::new(0.01),
-            Friction::new(0.8),
-            CollisionMargin(0.05),
-            ColliderConstructor::TrimeshFromMesh,
-            CollisionEventsEnabled,
-        ),
-        ColliderType::Dynamic => (
-            RigidBody::Dynamic,
-            Mesh3d(collider.clone()),
-            Mass(100.0),
-            ColliderDensity::default(),
-            Restitution::new(0.01),
-            Friction::new(0.8),
-            CollisionMargin(0.05),
-            ColliderConstructor::TrimeshFromMesh,
-            CollisionEventsEnabled,
-        ),
-    }
+    (
+        collider_type,
+        Mesh3d(collider.clone()),
+        Mass(100.0),
+        ColliderDensity::default(),
+        Restitution::new(0.01),
+        Friction::new(0.8),
+        CollisionMargin(0.05),
+        ColliderConstructor::TrimeshFromMesh,
+        CollisionEventsEnabled,
+    )
 }
 
 #[derive(Event)]
