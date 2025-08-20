@@ -3,7 +3,7 @@ mod collision;
 mod level;
 mod player;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PresentMode};
 use bevy_inspector_egui::{
     bevy_egui::EguiPlugin, quick::WorldInspectorPlugin,
 };
@@ -30,33 +30,38 @@ pub enum AppState {
 fn main() {
     let mut app = App::new();
 
-    app.add_plugins(DefaultPlugins)
-        .insert_resource(ClearColor(Color::srgb(
-            0.133, 0.12, 0.12,
-        )))
-        .init_state::<AppState>()
-        .insert_resource(AmbientLight {
-            brightness: 400.0,
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        primary_window: Some(Window {
+            // Turn off vsync to maximize CPU/GPU usage
+            present_mode: PresentMode::AutoNoVsync,
             ..default()
-        })
-        .add_plugins((
-            AssetLoaderPlugin,
-            CollisionPlugin,
-            LevelPlugin,
-            PlayerPlugin,
-        ))
-        .add_systems(OnEnter(AppState::Setup), setup)
-        .add_systems(
-            Update,
-            start_game.run_if(in_state(AppState::Setup)),
-        )
-        .add_systems(
-            Update,
-            on_results.run_if(
-                in_state(AppState::Failed)
-                    .or(in_state(AppState::Succeed)),
-            ),
-        );
+        }),
+        ..default()
+    }))
+    .insert_resource(ClearColor(Color::srgb(0.133, 0.12, 0.12)))
+    .init_state::<AppState>()
+    .insert_resource(AmbientLight {
+        brightness: 400.0,
+        ..default()
+    })
+    .add_plugins((
+        AssetLoaderPlugin,
+        CollisionPlugin,
+        LevelPlugin,
+        PlayerPlugin,
+    ))
+    .add_systems(OnEnter(AppState::Setup), setup)
+    .add_systems(
+        Update,
+        start_game.run_if(in_state(AppState::Setup)),
+    )
+    .add_systems(
+        Update,
+        on_results.run_if(
+            in_state(AppState::Failed)
+                .or(in_state(AppState::Succeed)),
+        ),
+    );
 
     if IN_DEVELOPMENT {
         app.add_systems(Update, exit_on_esc);
