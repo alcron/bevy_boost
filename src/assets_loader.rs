@@ -89,7 +89,7 @@ fn load_assets(
                         mesh: 0,
                         primitive: 0,
                     }
-                    .from_asset("rocket.gltf"),
+                    .from_asset("rocket_collider.gltf"),
                 ),
             ),
         },
