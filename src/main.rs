@@ -2,6 +2,7 @@ mod assets_loader;
 mod collision;
 mod level;
 mod player;
+mod sounds;
 
 use bevy::{prelude::*, window::PresentMode};
 use bevy_inspector_egui::{
@@ -11,7 +12,7 @@ use iyes_perf_ui::prelude::*;
 
 use crate::{
     collision::CollisionPlugin, level::LevelPlugin,
-    player::PlayerPlugin,
+    player::PlayerPlugin, sounds::SoundsPlugin,
 };
 use assets_loader::AssetLoaderPlugin;
 
@@ -49,6 +50,7 @@ fn main() {
         CollisionPlugin,
         LevelPlugin,
         PlayerPlugin,
+        SoundsPlugin,
     ))
     .add_systems(OnEnter(AppState::Setup), setup)
     .add_systems(
