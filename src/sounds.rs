@@ -48,6 +48,12 @@ fn play_success_sound(
     ));
 }
 
+pub fn create_sound_effect_controller(
+    sound: Handle<AudioSource>,
+) -> impl Bundle {
+    (AudioPlayer::new(sound), PlaybackSettings::LOOP)
+}
+
 // TODO: Think about fade out to prevent sound "click" effect on remove
 fn clean_sound_effects(
     mut commands: Commands,

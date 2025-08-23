@@ -9,6 +9,7 @@ use crate::{
         RigidBody, create_collider,
     },
     level::{Finish, Obstacle},
+    sounds::create_sound_effect_controller,
 };
 
 #[derive(Component)]
@@ -60,6 +61,9 @@ fn on_update(
         ),
         With<Player>,
     >,
+    // TODO: Make Crashed and Landed events and use them to mutate game state
+    // TODO: Implement using events, fix bug when sound continues playing after end if boost action wasn't released on game end
+    sound_controller: Single<&AudioSink, With<Player>>,
     time: Res<Time>,
 ) {
     let (
@@ -75,6 +79,10 @@ fn on_update(
 
         linear_velocity.x += top.x * multiplier;
         linear_velocity.y += top.y * multiplier;
+
+        sound_controller.play();
+    } else {
+        sound_controller.pause();
     }
 
     if action_state.pressed(&Action::RotateLeft) {
@@ -149,6 +157,9 @@ fn setup(
             (Action::RotateRight, KeyCode::KeyD),
             (Action::RotateRight, KeyCode::ArrowRight),
         ]),
+        create_sound_effect_controller(
+            scene_assets.main_engine_thrust_sound.clone(),
+        ),
         Name::new("Player"),
         Player,
     ));

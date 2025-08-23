@@ -16,6 +16,7 @@ pub struct SceneAssets {
     pub obstacle_3: GameAsset,
     pub death_explosion_sound: Handle<AudioSource>,
     pub success_sound: Handle<AudioSource>,
+    pub main_engine_thrust_sound: Handle<AudioSource>,
 }
 
 pub struct AssetLoaderPlugin;
@@ -128,5 +129,7 @@ fn load_assets(
         death_explosion_sound: asset_server
             .load("sounds/death_explosion.ogg"),
         success_sound: asset_server.load("sounds/success.ogg"),
+        main_engine_thrust_sound: asset_server
+            .load("sounds/main_engine_thrust.ogg"),
     };
 }
