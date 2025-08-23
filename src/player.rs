@@ -147,7 +147,7 @@ fn setup(
 
     commands.spawn((
         SceneRoot(scene_assets.rocket.model.clone()),
-        Transform::from_xyz(-7.5, 1.6, 0.0),
+        Transform::from_xyz(-7.5, 1.7, 0.0),
         create_collider(RigidBody::Dynamic, collider),
         InputMap::new([
             (Action::Boost, KeyCode::Space),

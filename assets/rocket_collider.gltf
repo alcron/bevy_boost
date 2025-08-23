@@ -16,30 +16,40 @@
 		{
 			"mesh":0,
 			"name":"Rocket_Collider",
-			"rotation":[
+			"translation":[
 				0,
-				0.13052618503570557,
-				0,
-				0.9914448857307434
-			],
-			"scale":[
-				0.7127030491828918,
-				1,
-				0.7127030491828918
+				0.19005921483039856,
+				0
 			]
+		}
+	],
+	"materials":[
+		{
+			"doubleSided":true,
+			"name":"MI_COL",
+			"pbrMetallicRoughness":{
+				"baseColorFactor":[
+					0,
+					0.5,
+					1,
+					1
+				],
+				"metallicFactor":0,
+				"roughnessFactor":0.4000000059604645
+			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Cylinder.001",
+			"name":"Rocket.001-convcolonly_001_data",
 			"primitives":[
 				{
 					"attributes":{
 						"POSITION":0,
-						"NORMAL":1,
-						"TEXCOORD_0":2
+						"NORMAL":1
 					},
-					"indices":3
+					"indices":2,
+					"material":0
 				}
 			]
 		}
@@ -48,67 +58,55 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":96,
+			"count":318,
 			"max":[
-				0.9373952746391296,
-				0.9992570281028748,
-				0.9373952746391296
+				0.6809750199317932,
+				0.808335542678833,
+				0.6809750199317932
 			],
 			"min":[
-				-0.9373952746391296,
-				-1.0009431838989258,
-				-0.9373952746391296
+				-0.6809750199317932,
+				-1.1887212991714478,
+				-0.6809750199317932
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":96,
+			"count":318,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
-			"componentType":5126,
-			"count":96,
-			"type":"VEC2"
-		},
-		{
-			"bufferView":3,
 			"componentType":5123,
-			"count":180,
+			"count":378,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1152,
+			"byteLength":3816,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1152,
-			"byteOffset":1152,
+			"byteLength":3816,
+			"byteOffset":3816,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":768,
-			"byteOffset":2304,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":360,
-			"byteOffset":3072,
+			"byteLength":756,
+			"byteOffset":7632,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":3432,
+			"byteLength":8388,
 			"uri":"rocket_collider.bin"
 		}
 	]
